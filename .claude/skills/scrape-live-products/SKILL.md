@@ -98,6 +98,23 @@ If anything out-of-scope landed, fix `is_in_scope()` first, add the case to
 `tests/test_ingest_scope.py`, then delete the rows — in that order, so the filter
 stops them coming back before you clean up.
 
+## Sharing what you scraped
+
+A scrape lives only in the local `xlb.db`, which is gitignored. Re-scraping is not
+reproducible — the feed reorders, prices move, INCIDecoder coverage varies — so a
+teammate running `ingest` gets a *different* catalog, and a fresh clone with no
+ingest sees an empty one, because synthetic products are hidden.
+
+After a scrape worth sharing, re-dump the fixture and commit it:
+
+```bash
+.venv/Scripts/python.exe -m app.jobs.fixture dump   # -> app/data/live_products.json
+```
+
+`load` reuses the same upsert helpers as the live ingest, so a fixture product and
+a scraped one are indistinguishable in the database. Prices in the file are a
+snapshot from dump time, not live; `generated_at` records when.
+
 ## Adding a retailer
 
 1. **Read its robots.txt first**, as `XLBSkincareBot`, and check the *specific

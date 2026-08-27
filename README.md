@@ -31,10 +31,14 @@ python -m venv .venv
 .venv/Scripts/python.exe -m pip install -e ".[dev]"   # Windows
 # source .venv/bin/activate && pip install -e ".[dev]" # macOS/Linux
 
-python -m app.jobs.seed --reset  # creates tables + synthetic seed data
-python -m pytest                 # 55 tests
+python -m app.jobs.seed --reset      # creates tables + synthetic seed data
+python -m app.jobs.fixture load     # loads the shared live catalog (53 real products)
+python -m pytest
 python -m uvicorn app.main:app --reload   # http://localhost:8000/docs
 ```
+
+Run the `fixture load` step. Synthetic products are hidden from the API by
+default, so without it the catalog is empty.
 
 The schema is currently created with SQLAlchemy `create_all` on startup. Alembic
 is declared as a dependency but migrations are not wired up yet — that is the
@@ -138,6 +142,25 @@ the most reliable signal: Soko Glam files its whole body range as `Body` and its
 merchandise as `SWAG`, so two entries in `OUT_OF_SCOPE_TYPES` exclude ~18
 products that no amount of title matching would catch. `tests/test_ingest_scope.py`
 pins the cases, all of them real titles from the live feed.
+
+### Sharing a scraped catalog
+
+`xlb.db` is gitignored and should stay that way, so a live catalog travels as a
+JSON fixture instead:
+
+```bash
+python -m app.jobs.fixture dump    # DB   -> app/data/live_products.json
+python -m app.jobs.fixture load    # JSON -> DB
+```
+
+This exists because re-scraping is not reproducible: the retailer's feed reorders,
+prices move, and INCIDecoder coverage varies run to run, so two people running
+`ingest` get different catalogs. The fixture is text, so it reviews in a PR like
+anything else, and `load` reuses the same upsert helpers as the live ingest — a
+fixture product and a scraped one are indistinguishable afterwards.
+
+Prices in a fixture are a snapshot from when it was dumped, not live;
+`generated_at` in the file records when. Re-dump after a scrape worth sharing.
 
 ### Synthetic products are hidden by default
 

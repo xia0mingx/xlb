@@ -25,7 +25,14 @@ python -m venv .venv
 .venv/Scripts/python.exe -m app.jobs.seed --reset          # tables + synthetic catalog
 .venv/Scripts/python.exe -m app.jobs.ingest --limit 10 --dry-run   # live, writes nothing
 .venv/Scripts/python.exe -m app.jobs.ingest --limit 10             # live, writes
+.venv/Scripts/python.exe -m app.jobs.fixture load          # shared live catalog from JSON
+.venv/Scripts/python.exe -m app.jobs.fixture dump          # DB -> app/data/live_products.json
 ```
+
+`fixture load` is what a fresh clone needs: synthetic products are hidden by
+default, so without it the catalog is empty. `xlb.db` is gitignored, and a live
+catalog is shared as JSON rather than as a database file — re-scraping is not
+reproducible, since the feed reorders and prices move between runs.
 
 ```bash
 # Frontend, from frontend/
