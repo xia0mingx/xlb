@@ -9,9 +9,10 @@ import {
   type ReactNode,
 } from 'react'
 import { api } from './api/client'
+import * as storage from './storage'
 import type { CurrencyCatalogue, CurrencyInfo } from './api/types'
 
-const STORAGE_KEY = 'xlb.currency'
+const STORAGE_NAME = 'currency'
 
 /** Shown before the catalogue loads, so prices never render as bare numbers. */
 const FALLBACK: CurrencyInfo = { code: 'USD', symbol: '$', name: 'US dollar', rate: 1 }
@@ -42,17 +43,8 @@ function detectTimezone(): string | undefined {
   }
 }
 
-function readStored(): string | null {
-  try {
-    return window.localStorage.getItem(STORAGE_KEY)
-  } catch {
-    // Storage throws outright in private windows, not merely returns null.
-    return null
-  }
-}
-
 export function CurrencyProvider({ children }: { children: ReactNode }) {
-  const [chosen, setChosen] = useState<string | null>(() => readStored())
+  const [chosen, setChosen] = useState<string | null>(() => storage.read(STORAGE_NAME))
   const timezone = useMemo(detectTimezone, [])
 
   // The backend owns the region-to-currency rule and the rates, so the eurozone
@@ -71,17 +63,13 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
 
   const setCurrency = useCallback((code: string) => {
     setChosen(code)
-    try {
-      window.localStorage.setItem(STORAGE_KEY, code)
-    } catch {
-      // Non-fatal: the choice holds for this session.
-    }
+    storage.write(STORAGE_NAME, code)
   }, [])
 
   useEffect(() => {
     // Keep tabs in step if the currency is switched in another one.
     const onStorage = (event: StorageEvent) => {
-      if (event.key === STORAGE_KEY) setChosen(event.newValue)
+      if (storage.eventMatches(event.key, STORAGE_NAME)) setChosen(event.newValue)
     }
     window.addEventListener('storage', onStorage)
     return () => window.removeEventListener('storage', onStorage)

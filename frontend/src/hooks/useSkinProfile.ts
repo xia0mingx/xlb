@@ -1,7 +1,8 @@
 import { useCallback, useSyncExternalStore } from 'react'
 import type { SkinProfile } from '../api/types'
+import * as storage from '../storage'
 
-const STORAGE_KEY = 'dewdrop.skin-profile'
+const STORAGE_NAME = 'skin-profile'
 
 export const emptyProfile: SkinProfile = {
   skin_type: 'normal',
@@ -17,12 +18,8 @@ export const emptyProfile: SkinProfile = {
 function read(): SkinProfile | null {
   // Storage can throw outright in private windows and embedded contexts, so
   // every access is guarded rather than merely null-checked.
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    return raw ? ({ ...emptyProfile, ...JSON.parse(raw) } as SkinProfile) : null
-  } catch {
-    return null
-  }
+  const stored = storage.readJson<Partial<SkinProfile> | null>(STORAGE_NAME, null)
+  return stored ? ({ ...emptyProfile, ...stored } as SkinProfile) : null
 }
 
 // One shared snapshot for the whole app. Several components read the profile at
@@ -41,7 +38,7 @@ function subscribe(listener: () => void): () => void {
   listeners.add(listener)
   // Cross-tab sync still matters: the quiz may be retaken in another tab.
   const onStorage = (event: StorageEvent) => {
-    if (event.key === STORAGE_KEY) {
+    if (storage.eventMatches(event.key, STORAGE_NAME)) {
       snapshot = read()
       emit()
     }
@@ -60,12 +57,8 @@ function getSnapshot(): SkinProfile | null {
 
 function write(next: SkinProfile | null) {
   snapshot = next
-  try {
-    if (next) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
-    else window.localStorage.removeItem(STORAGE_KEY)
-  } catch {
-    // Non-fatal: the profile still works for this session.
-  }
+  if (next) storage.writeJson(STORAGE_NAME, next)
+  else storage.remove(STORAGE_NAME)
   emit()
 }
 

@@ -2,38 +2,21 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../api/client'
 import { useCurrency } from '../currency'
 import type { ChatMessage } from '../api/types'
+import * as storage from '../storage'
 
-const TRANSCRIPT_KEY = 'dewdrop.chat.transcript'
-const AVOID_KEY = 'dewdrop.chat.avoid'
+const TRANSCRIPT_NAME = 'chat.transcript'
+const AVOID_NAME = 'chat.avoid'
 
 // Replaying the whole transcript on every turn costs tokens and eventually
 // exceeds the context window, so the client keeps a bounded tail. The backend
 // trims again on its side - neither end trusts the other to have done it.
 const MAX_TRANSCRIPT = 40
 
-/** Storage throws outright in private windows and embedded contexts, not merely returns null. */
-function readJson<T>(key: string, fallback: T): T {
-  try {
-    const raw = window.localStorage.getItem(key)
-    return raw ? (JSON.parse(raw) as T) : fallback
-  } catch {
-    return fallback
-  }
-}
-
-function writeJson(key: string, value: unknown) {
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value))
-  } catch {
-    // Non-fatal: the conversation still works for this session.
-  }
-}
-
 export function useChat() {
   const [messages, setMessages] = useState<ChatMessage[]>(() =>
-    readJson<ChatMessage[]>(TRANSCRIPT_KEY, []),
+    storage.readJson<ChatMessage[]>(TRANSCRIPT_NAME, []),
   )
-  const [avoid, setAvoid] = useState<string[]>(() => readJson<string[]>(AVOID_KEY, []))
+  const [avoid, setAvoid] = useState<string[]>(() => storage.readJson<string[]>(AVOID_NAME, []))
   const { currency } = useCurrency()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -46,11 +29,11 @@ export function useChat() {
   }, [messages, avoid, currency.code])
 
   useEffect(() => {
-    writeJson(TRANSCRIPT_KEY, messages.slice(-MAX_TRANSCRIPT))
+    storage.writeJson(TRANSCRIPT_NAME, messages.slice(-MAX_TRANSCRIPT))
   }, [messages])
 
   useEffect(() => {
-    writeJson(AVOID_KEY, avoid)
+    storage.writeJson(AVOID_NAME, avoid)
   }, [avoid])
 
   const send = useCallback(async (text: string) => {
