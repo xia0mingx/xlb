@@ -22,10 +22,12 @@ import { PriceChart } from '../components/PriceChart'
 import { PriceTable } from '../components/PriceTable'
 import { ProductCard } from '../components/ProductCard'
 import { ProductImage } from '../components/ProductImage'
-import { CATEGORY_LABELS, formatPrice } from '../format'
+import { CATEGORY_LABELS } from '../format'
+import { useCurrency } from '../currency'
 import { useSkinProfile } from '../hooks/useSkinProfile'
 
 export function Product() {
+  const { formatPrice } = useCurrency()
   const { slug = '' } = useParams()
   const { profile } = useSkinProfile()
   const avoid = profile?.avoid_ingredients ?? []

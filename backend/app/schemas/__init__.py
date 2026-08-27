@@ -32,6 +32,8 @@ class IngredientOut(BaseModel):
     description: str | None = None
     known: bool = True
     is_prominent: bool = False
+    # "natural" | "nature_identical" | "synthetic" | None when undetermined.
+    source: str | None = None
 
 
 class RetailerPrice(BaseModel):
@@ -126,6 +128,12 @@ class ProductAnalysis(BaseModel):
     has_essential_oil: bool = False
     known_count: int = 0
     unknown_count: int = 0
+    # Provenance breakdown. `unknown_source` is reported separately rather than
+    # folded in, so a product we cannot classify does not read as synthetic.
+    natural_count: int = 0
+    nature_identical_count: int = 0
+    synthetic_count: int = 0
+    unknown_source_count: int = 0
 
 
 class ProductDetail(ProductSummary):
@@ -231,6 +239,9 @@ class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=2000)
     history: list[ChatMessage] = Field(default_factory=list, max_length=40)
     avoid: list[str] = Field(default_factory=list, max_length=50)
+    # What the viewer sees on the page. An unknown code falls back to USD rather
+    # than erroring, so a stale localStorage value cannot break the assistant.
+    currency: str | None = None
 
 
 class ChatResponse(BaseModel):

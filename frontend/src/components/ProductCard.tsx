@@ -2,7 +2,8 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import { Box, Card, CardActionArea, Chip, Stack, Tooltip, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import type { ProductSummary } from '../api/types'
-import { CATEGORY_LABELS, formatPrice } from '../format'
+import { CATEGORY_LABELS } from '../format'
+import { useCurrency } from '../currency'
 import { ProductImage } from './ProductImage'
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function ProductCard({ product, showSpread = true }: Props) {
+  const { formatPrice } = useCurrency()
   const spread =
     product.best_price !== null && product.highest_price !== null
       ? product.highest_price - product.best_price

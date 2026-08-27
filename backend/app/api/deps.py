@@ -35,6 +35,7 @@ from app.schemas import (
 )
 from app.services.allergens import AllergenTerm, screen
 from app.services.analysis import Analysis, analyze
+from app.services.provenance import classify, summarise
 
 # A listing that has not been refreshed in this long is shown with a staleness
 # warning rather than hidden - a stale price beats no price, as long as we say so.
@@ -243,9 +244,12 @@ def to_detail(
             description=i.description,
             known=i.known,
             is_prominent=i.is_prominent,
+            source=classify(i.inci_name),
         )
         for i in analysis.ingredients
     ]
+
+    provenance = summarise([ingredient.source for ingredient in ingredients])
 
     return ProductDetail(
         **summary.model_dump(),
@@ -260,6 +264,10 @@ def to_detail(
             has_essential_oil=analysis.has_essential_oil,
             known_count=analysis.known_count,
             unknown_count=analysis.unknown_count,
+            natural_count=provenance["natural"],
+            nature_identical_count=provenance["nature_identical"],
+            synthetic_count=provenance["synthetic"],
+            unknown_source_count=provenance["unknown"],
         ),
         prices=[RetailerPrice(**p) for p in prices],
     )

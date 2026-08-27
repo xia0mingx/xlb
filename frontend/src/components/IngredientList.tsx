@@ -14,10 +14,17 @@ import {
 } from '@mui/material'
 import type { AllergenScreen, Ingredient, ProductAnalysis } from '../api/types'
 import { ACTIVE_GROUP_LABELS } from '../format'
+import { ProvenanceBreakdown } from './ProvenanceBreakdown'
 
 const COVERAGE_CAVEAT =
   'Screening compares your list against the published ingredient list. It cannot account for ' +
   'reformulation, cross-contamination, or "may contain" traces — check the pack if you react severely.'
+
+const SOURCE_LABELS: Record<string, string> = {
+  natural: 'natural',
+  nature_identical: 'nature-identical',
+  synthetic: 'synthetic',
+}
 
 function ordinal(n: number): string {
   const rem100 = n % 100
@@ -137,6 +144,8 @@ export function IngredientList({ ingredients, analysis, allergens }: Props) {
         </Alert>
       )}
 
+      <ProvenanceBreakdown ingredients={ingredients} analysis={analysis} />
+
       <Paper variant="outlined" sx={{ p: 2 }}>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
           Listed in INCI order — ingredients near the top are present at the highest
@@ -148,6 +157,7 @@ export function IngredientList({ ingredients, analysis, allergens }: Props) {
             const label = ingredient.common_name ?? ingredient.inci_name
             const detail = [
               ingredient.function,
+              ingredient.source ? SOURCE_LABELS[ingredient.source] : null,
               ingredient.comedogenic_rating
                 ? `comedogenic ${ingredient.comedogenic_rating}/5`
                 : null,

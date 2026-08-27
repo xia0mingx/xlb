@@ -24,8 +24,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import build_analysis, latest_prices, price_history, product_query, to_summary
 from app.chat.allergens import ResolvedAllergens, blocked_reason, resolve
+from app.services.provenance import classify, summarise
 from app.models import Brand, Concern, Product, ProductConcern
 from app.models.enums import CATEGORY_LABELS
+from app.services import currency as currency_service
 from app.services.analysis import Analysis, detect_conflicts
 from app.services.dupes import find_dupes
 from app.services.recommend import SkinProfile, rank, score_product
@@ -55,6 +57,9 @@ class ChatContext:
     session: AsyncSession
     avoid_terms: list[str] = field(default_factory=list)
     allergens: ResolvedAllergens = field(default_factory=ResolvedAllergens)
+    # What the viewer sees on the page. Prices are stored in USD and converted
+    # here so the assistant never quotes a different currency to the one beside it.
+    currency: str = currency_service.BASE
 
     def add_allergens(self, terms: list[str]) -> ResolvedAllergens:
         """Register newly stated allergens and re-resolve the whole set."""
@@ -258,14 +263,16 @@ def format_summary(
     guess a symbol, and it guesses wrong - an observed run rendered USD prices
     with a pound sign, which is a correct number reported as the wrong money.
     """
+    display = currency_service.resolve(currency)
     out: dict = {
         "slug": summary.slug,
         "brand": summary.brand,
         "name": summary.name,
         "category": summary.category,
         "size": summary.size_label,
-        "best_price": summary.best_price,
-        "currency": currency or DEFAULT_CURRENCY,
+        "best_price": currency_service.convert(summary.best_price, display),
+        "currency": display,
+        "price_display": currency_service.format_amount(summary.best_price, display),
         "retailers": summary.retailer_count,
         "on_sale": summary.on_sale,
     }
@@ -287,6 +294,7 @@ def format_ingredients(analysis: Analysis, limit: int = 40) -> dict:
             {"name": i.common_name or i.inci_name, "position": i.position, "group": i.active_group}
             for i in analysis.actives
         ],
+        "provenance": summarise([classify(i.inci_name) for i in analysis.ingredients]),
         "irritants": [i.common_name or i.inci_name for i in analysis.irritants],
         "max_comedogenic": analysis.max_comedogenic,
         "has_fragrance": analysis.has_fragrance,
@@ -300,10 +308,12 @@ def format_prices(
     prices: list[dict], history_low: float | None = None, currency: str | None = None
 ) -> dict:
     """Retailer prices, cheapest first, with the fields a shopper asks about."""
+    display = currency_service.resolve(currency)
     rows = [
         {
             "retailer": p["retailer"],
-            "price": p["price"],
+            "price": currency_service.convert(p["price"], display),
+            "price_display": currency_service.format_amount(p["price"], display),
             "in_stock": p["in_stock"],
             "on_sale": bool(p.get("was_price")),
             "stale": bool(p.get("is_stale")),
@@ -312,12 +322,12 @@ def format_prices(
         if p.get("price") is not None
     ]
     rows.sort(key=lambda r: r["price"])
-    out: dict = {"retailers": rows, "currency": currency or DEFAULT_CURRENCY}
+    out: dict = {"retailers": rows, "currency": display}
     if rows:
         out["cheapest"] = rows[0]["retailer"]
         out["spread"] = round(rows[-1]["price"] - rows[0]["price"], 2)
     if history_low is not None:
-        out["ninety_day_low"] = history_low
+        out["ninety_day_low"] = currency_service.convert(history_low, display)
     return out
 
 
@@ -421,7 +431,7 @@ async def search_products(ctx: ChatContext, query: str, category: str | None = N
     for product, analysis, summary, currency in rows:
         if max_price is not None and (summary.best_price is None or summary.best_price > max_price):
             continue
-        triples.append((product.id, analysis, format_summary(summary, currency=currency)))
+        triples.append((product.id, analysis, format_summary(summary, currency=ctx.currency)))
 
     filtered = apply_allergen_filter(triples, ctx.allergens)
     filtered["products"] = filtered["products"][:MAX_RESULTS]
@@ -492,7 +502,7 @@ async def recommend_products(
                 summaries[s.product_id],
                 reasons=s.reasons,
                 warnings=s.warnings,
-                currency=_currency_of(prices.get(s.product_id, [])),
+                currency=ctx.currency,
             ),
         )
         for s in top
@@ -514,7 +524,7 @@ async def get_product_details(ctx: ChatContext, slug: str) -> dict:
     prices = await latest_prices(ctx.session, [product.id])
     summary = to_summary(product, prices.get(product.id, []), analysis)
 
-    payload = format_summary(summary, currency=_currency_of(prices.get(product.id, [])))
+    payload = format_summary(summary, currency=ctx.currency)
     payload["ingredients"] = format_ingredients(analysis)
 
     reason = blocked_reason(analysis, ctx.allergens)
@@ -533,7 +543,7 @@ async def compare_prices(ctx: ChatContext, slug: str) -> dict:
     lows = [p.price for series in history for p in series.points]
 
     rows = prices.get(product.id, [])
-    out = format_prices(rows, min(lows) if lows else None, currency=_currency_of(rows))
+    out = format_prices(rows, min(lows) if lows else None, currency=ctx.currency)
     out["product"] = f"{product.brand.name} {product.name}" if product.brand else product.name
     return out
 
@@ -565,7 +575,7 @@ async def find_cheaper_dupes(ctx: ChatContext, slug: str) -> dict:
         summary = summaries.get(score.product_id)
         if summary is None:
             continue
-        payload = format_summary(summary, currency=currencies.get(score.product_id))
+        payload = format_summary(summary, currency=ctx.currency)
         payload["similarity"] = round(score.similarity, 3)
         payload["shared_actives"] = score.shared_actives
         if score.savings is not None:

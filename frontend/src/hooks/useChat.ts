@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../api/client'
+import { useCurrency } from '../currency'
 import type { ChatMessage } from '../api/types'
 
 const TRANSCRIPT_KEY = 'xlb.chat.transcript'
@@ -33,15 +34,16 @@ export function useChat() {
     readJson<ChatMessage[]>(TRANSCRIPT_KEY, []),
   )
   const [avoid, setAvoid] = useState<string[]>(() => readJson<string[]>(AVOID_KEY, []))
+  const { currency } = useCurrency()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Held in a ref as well so send() always posts the current values without
   // being re-created on every keystroke-driven render.
-  const stateRef = useRef({ messages, avoid })
+  const stateRef = useRef({ messages, avoid, currency: currency.code })
   useEffect(() => {
-    stateRef.current = { messages, avoid }
-  }, [messages, avoid])
+    stateRef.current = { messages, avoid, currency: currency.code }
+  }, [messages, avoid, currency.code])
 
   useEffect(() => {
     writeJson(TRANSCRIPT_KEY, messages.slice(-MAX_TRANSCRIPT))
@@ -65,6 +67,7 @@ export function useChat() {
         message,
         history,
         avoid: stateRef.current.avoid,
+        currency: stateRef.current.currency,
       })
       setMessages((prev) => [...prev, { role: 'assistant', content: result.reply }])
       // The assistant may have recorded an allergy this turn; adopt what it returned.

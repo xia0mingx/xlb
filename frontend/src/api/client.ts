@@ -3,6 +3,7 @@ import type {
   ChatMessage,
   ChatReply,
   Conflict,
+  CurrencyCatalogue,
   Dupe,
   FilterOptions,
   PriceHistory,
@@ -92,9 +93,17 @@ export const api = {
       body: JSON.stringify(profile),
     }),
 
+  currencies: (timezone?: string) =>
+    request<CurrencyCatalogue>(`/currencies${timezone ? `?timezone=${encodeURIComponent(timezone)}` : ''}`),
+
   chatStatus: () => request<{ enabled: boolean }>('/chat/status'),
 
-  chat: (body: { message: string; history: ChatMessage[]; avoid: string[] }) =>
+  chat: (body: {
+    message: string
+    history: ChatMessage[]
+    avoid: string[]
+    currency?: string
+  }) =>
     request<ChatReply>('/chat', {
       method: 'POST',
       body: JSON.stringify(body),

@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.chat.allergens import resolve
 from app.chat.prompt import build_system_prompt
 from app.chat.tools import TOOL_DEFINITIONS, ChatContext, execute_tool
+from app.services import currency as currency_service
 from app.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -89,6 +90,7 @@ async def run_turn(
     message: str,
     history: list[dict] | None = None,
     avoid: list[str] | None = None,
+    currency: str | None = None,
 ) -> ChatResult:
     """Run one user turn to a final answer.
 
@@ -103,12 +105,19 @@ async def run_turn(
             "OPENCODE_API_KEY in the backend environment."
         )
 
-    ctx = ChatContext(session=session, avoid_terms=list(avoid or []))
+    ctx = ChatContext(
+        session=session,
+        avoid_terms=list(avoid or []),
+        currency=currency_service.resolve(currency),
+    )
     ctx.allergens = resolve(ctx.avoid_terms)
 
     trimmed = (history or [])[-settings.chat_max_history :]
     messages: list[dict] = [
-        {"role": "system", "content": build_system_prompt(ctx.allergens.labels())},
+        {
+            "role": "system",
+            "content": build_system_prompt(ctx.allergens.labels(), ctx.currency),
+        },
         *trimmed,
         {"role": "user", "content": message},
     ]
@@ -149,7 +158,7 @@ async def run_turn(
             if "record_allergy" in called:
                 messages[0] = {
                     "role": "system",
-                    "content": build_system_prompt(ctx.allergens.labels()),
+                    "content": build_system_prompt(ctx.allergens.labels(), ctx.currency),
                 }
 
     return ChatResult(

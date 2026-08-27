@@ -20,7 +20,8 @@ import { Link as RouterLink } from 'react-router-dom'
 import { api } from '../api/client'
 import type { ProductSummary } from '../api/types'
 import { ProductCard } from '../components/ProductCard'
-import { CATEGORY_LABELS, formatPrice } from '../format'
+import { CATEGORY_LABELS } from '../format'
+import { useCurrency } from '../currency'
 import { useSkinProfile } from '../hooks/useSkinProfile'
 
 function RoutineColumn({
@@ -32,6 +33,7 @@ function RoutineColumn({
   icon: React.ReactNode
   products: ProductSummary[]
 }) {
+  const { formatPrice } = useCurrency()
   return (
     <Paper variant="outlined" sx={{ p: 2.5, height: '100%' }}>
       <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>

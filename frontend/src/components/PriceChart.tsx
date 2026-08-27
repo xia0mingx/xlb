@@ -10,7 +10,8 @@ import {
   YAxis,
 } from 'recharts'
 import type { PriceHistory } from '../api/types'
-import { SERIES_COLORS, formatPrice } from '../format'
+import { SERIES_COLORS } from '../format'
+import { useCurrency } from '../currency'
 
 interface Props {
   history: PriceHistory[]
@@ -22,14 +23,22 @@ interface Props {
  * onto a shared date axis rather than plotted independently - otherwise the
  * lines cannot be compared at a glance, which is the whole point.
  */
-function mergeSeries(history: PriceHistory[]) {
+/**
+ * Flatten the per-retailer series into one row per day, converting as we go.
+ *
+ * Conversion happens here rather than in the formatters so that the plotted
+ * positions, the axis ticks and the tooltip all read from the same numbers. Doing
+ * it in the formatters instead would leave the line drawn at the USD value while
+ * the labels claimed another currency.
+ */
+function mergeSeries(history: PriceHistory[], convert: (value: number) => number) {
   const byDate = new Map<string, Record<string, number | string>>()
 
   history.forEach((series) => {
     series.points.forEach((point) => {
       const day = point.date.slice(0, 10)
       const row = byDate.get(day) ?? { date: day }
-      row[series.retailer_slug] = point.price
+      row[series.retailer_slug] = convert(point.price)
       byDate.set(day, row)
     })
   })
@@ -40,6 +49,7 @@ function mergeSeries(history: PriceHistory[]) {
 }
 
 export function PriceChart({ history, lowest }: Props) {
+  const { formatPrice, convert, currency } = useCurrency()
   const theme = useTheme()
 
   if (history.length === 0) {
@@ -52,7 +62,7 @@ export function PriceChart({ history, lowest }: Props) {
     )
   }
 
-  const data = mergeSeries(history)
+  const data = mergeSeries(history, convert)
 
   return (
     <Paper variant="outlined" sx={{ p: 2.5 }}>
@@ -83,14 +93,15 @@ export function PriceChart({ history, lowest }: Props) {
           />
           <YAxis
             tick={{ fontSize: 11, fill: theme.palette.text.secondary }}
-            tickFormatter={(value: number) => `$${value}`}
+            tickFormatter={(value: number) => `${currency.symbol}${value}`}
             width={54}
             stroke={theme.palette.divider}
             domain={['auto', 'auto']}
           />
           <Tooltip
             formatter={(value: number, name: string) => [
-              formatPrice(value),
+              // Already converted in mergeSeries - only add the symbol here.
+              `${currency.symbol}${value.toFixed(2)}`,
               history.find((h) => h.retailer_slug === name)?.retailer ?? name,
             ]}
             contentStyle={{

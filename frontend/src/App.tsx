@@ -3,6 +3,7 @@ import SpaIcon from '@mui/icons-material/Spa'
 import { AppBar, Badge, Box, Button, Container, Stack, Toolbar, Typography } from '@mui/material'
 import { Link as RouterLink, Route, Routes } from 'react-router-dom'
 import { ChatWidget } from './components/ChatWidget'
+import { CurrencySwitcher } from './components/CurrencySwitcher'
 import { Allergies } from './pages/Allergies'
 import { Home } from './pages/Home'
 import { Product } from './pages/Product'
@@ -32,6 +33,8 @@ function Header() {
               xlb
             </Typography>
           </Stack>
+
+          <CurrencySwitcher />
 
           <Button component={RouterLink} to="/search" color="inherit">
             Browse

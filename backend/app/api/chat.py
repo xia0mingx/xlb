@@ -36,6 +36,7 @@ async def chat(
             message=payload.message,
             history=[m.model_dump() for m in payload.history],
             avoid=payload.avoid,
+            currency=payload.currency,
         )
     except ChatUnavailable as exc:
         raise HTTPException(

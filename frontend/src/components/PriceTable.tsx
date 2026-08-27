@@ -15,13 +15,15 @@ import {
   Typography,
 } from '@mui/material'
 import type { RetailerPrice } from '../api/types'
-import { formatPrice, formatRelativeTime } from '../format'
+import { formatRelativeTime } from '../format'
+import { useCurrency } from '../currency'
 
 interface Props {
   prices: RetailerPrice[]
 }
 
 export function PriceTable({ prices }: Props) {
+  const { formatPrice } = useCurrency()
   if (prices.length === 0) {
     return (
       <Paper variant="outlined" sx={{ p: 3, textAlign: 'center' }}>

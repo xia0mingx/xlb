@@ -73,6 +73,8 @@ export interface Ingredient {
   description: string | null
   known: boolean
   is_prominent: boolean
+  /** 'natural' | 'nature_identical' | 'synthetic', or null when undetermined. */
+  source: string | null
 }
 
 export interface RetailerPrice {
@@ -96,6 +98,10 @@ export interface ProductAnalysis {
   has_essential_oil: boolean
   known_count: number
   unknown_count: number
+  natural_count: number
+  nature_identical_count: number
+  synthetic_count: number
+  unknown_source_count: number
 }
 
 export interface ProductDetail extends ProductSummary {
@@ -199,4 +205,27 @@ export interface ChatReply {
   /** Echoed back including anything recorded this turn, so the client can persist it. */
   avoid: string[]
   tool_calls: string[]
+}
+
+export interface CurrencyInfo {
+  code: string
+  symbol: string
+  name: string
+  /** How much of this currency one US dollar buys. */
+  rate: number
+}
+
+export interface CurrencyCatalogue {
+  base: string
+  is_indicative: boolean
+  note: string
+  currencies: CurrencyInfo[]
+  /** What the viewer's region suggests, before any explicit choice. */
+  suggested: string
+}
+
+export interface IngredientSource {
+  key: string
+  label: string
+  description: string
 }
