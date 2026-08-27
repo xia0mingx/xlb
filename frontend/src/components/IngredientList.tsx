@@ -1,10 +1,8 @@
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import ScienceIcon from '@mui/icons-material/Science'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import {
   Alert,
-  AlertTitle,
   Box,
   Chip,
   Paper,
@@ -13,23 +11,16 @@ import {
   Typography,
 } from '@mui/material'
 import type { AllergenScreen, Ingredient, ProductAnalysis } from '../api/types'
+import { COVERAGE_CAVEAT } from './AllergenBanner'
 import { ACTIVE_GROUP_LABELS } from '../format'
 import { ProvenanceBreakdown } from './ProvenanceBreakdown'
 
-const COVERAGE_CAVEAT =
-  'Screening compares your list against the published ingredient list. It cannot account for ' +
-  'reformulation, cross-contamination, or "may contain" traces — check the pack if you react severely.'
-
+// Kept: the provenance labels upstream added. Dropped: COVERAGE_CAVEAT and
+// ordinal(), which moved to AllergenBanner along with the warning that used them.
 const SOURCE_LABELS: Record<string, string> = {
   natural: 'natural',
   nature_identical: 'nature-identical',
   synthetic: 'synthetic',
-}
-
-function ordinal(n: number): string {
-  const rem100 = n % 100
-  if (rem100 >= 11 && rem100 <= 13) return `${n}th`
-  return `${n}${['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`
 }
 
 function formatList(items: string[]): string {
@@ -58,9 +49,6 @@ export function IngredientList({ ingredients, analysis, allergens }: Props) {
 
   const hits = allergens?.hits ?? []
   const flaggedNames = new Set(hits.map((hit) => hit.inci_name))
-  // Position approximates concentration, so something listed 3rd matters more
-  // than the same thing listed 30th. Highest tier wins for the banner.
-  const anyProminent = hits.some((hit) => hit.prominent)
 
   const flags: string[] = []
   if (analysis.has_fragrance) flags.push('Contains fragrance')
@@ -72,29 +60,6 @@ export function IngredientList({ ingredients, analysis, allergens }: Props) {
 
   return (
     <Stack spacing={2}>
-      {hits.length > 0 && (
-        <Alert
-          severity={anyProminent ? 'error' : 'warning'}
-          variant="outlined"
-          icon={<ErrorOutlineIcon fontSize="inherit" />}
-        >
-          <AlertTitle>
-            Contains {hits.length} ingredient{hits.length === 1 ? '' : 's'} you avoid
-          </AlertTitle>
-          <Stack component="ul" spacing={0.25} sx={{ m: 0, pl: 2.5 }}>
-            {hits.map((hit) => (
-              <Typography component="li" variant="body2" key={`${hit.position}-${hit.inci_name}`}>
-                {hit.summary} — listed {ordinal(hit.position)} of {ingredients.length}
-                {hit.prominent ? ', so present at a meaningful level' : ''}
-              </Typography>
-            ))}
-          </Stack>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-            {COVERAGE_CAVEAT}
-          </Typography>
-        </Alert>
-      )}
-
       {allergens && hits.length === 0 && (
         <Alert
           severity={allergens.verdict === 'incomplete' ? 'info' : 'success'}
@@ -211,7 +176,8 @@ export function IngredientList({ ingredients, analysis, allergens }: Props) {
       <Box>
         <Typography variant="caption" color="text.secondary">
           Filled chips are actives · amber are common irritants
-          {hits.length > 0 ? ' · red are ingredients you avoid' : ''} · hover any ingredient
+          {hits.length > 0 ? ' · red are ingredients you avoid' : ''} · dimmed sit past the
+          first eight positions and are likely present in small amounts · hover any ingredient
           for detail.
         </Typography>
       </Box>

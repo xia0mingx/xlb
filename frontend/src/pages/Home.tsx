@@ -45,9 +45,29 @@ export function Home() {
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 5, md: 8 } }}>
       <Stack spacing={2.5} sx={{ maxWidth: 720, mb: 7 }}>
-        <Typography variant="h1">
+        <Typography
+          sx={{
+            fontSize: '0.72rem',
+            fontWeight: 600,
+            letterSpacing: '0.13em',
+            textTransform: 'uppercase',
+            color: 'secondary.main',
+          }}
+        >
+          Skincare price comparison
+        </Typography>
+        <Typography
+          variant="h1"
+          sx={{
+            fontSize: { xs: '2.4rem', md: '3.6rem' },
+            lineHeight: 1.05,
+            letterSpacing: '-0.035em',
+          }}
+        >
           Know what is in it.
-          <Box component="span" sx={{ color: 'primary.main' }}> Pay less for it.</Box>
+          <Box component="span" sx={{ color: 'primary.main', display: 'block' }}>
+            Pay less for it.
+          </Box>
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
           Compare the same skincare product across retailers, read the full ingredient
@@ -90,7 +110,12 @@ export function Home() {
 
       <Paper
         variant="outlined"
-        sx={{ p: { xs: 2.5, md: 3 }, mb: 7, borderColor: avoid.length ? 'error.main' : 'divider' }}
+        sx={{
+          p: { xs: 2.5, md: 3 },
+          mb: 7,
+          borderLeft: 3,
+          borderLeftColor: avoid.length ? 'error.main' : 'primary.main',
+        }}
       >
         <Stack
           direction="row"
@@ -120,7 +145,7 @@ export function Home() {
             sx={{ mt: 2.5 }}
           >
             {flagged.length > 0
-              ? `${flagged.length} of the ${deals?.length ?? 0} products below contain something you avoid — look for the red badge.`
+              ? `${flagged.length} of the ${deals?.length ?? 0} product${deals?.length === 1 ? '' : 's'} below contain${flagged.length === 1 ? 's' : ''} something you avoid — look for the red badge.`
               : `Screening ${avoid.length} entr${avoid.length === 1 ? 'y' : 'ies'}. Nothing below contains them.`}
           </Alert>
         )}
@@ -152,9 +177,9 @@ export function Home() {
           justifyContent="space-between"
           alignItems={{ sm: 'baseline' }}
           spacing={0.5}
-          sx={{ mb: 2.5 }}
+          sx={{ mb: 2.5, pb: 1.6, borderBottom: 1, borderColor: 'divider' }}
         >
-          <Typography variant="h4">Biggest price gaps</Typography>
+          <Typography variant="h3">Biggest price gaps</Typography>
           <Typography variant="body2" color="text.secondary">
             Same product, very different prices depending on where you buy
           </Typography>

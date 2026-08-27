@@ -255,6 +255,8 @@ def to_detail(
         **summary.model_dump(),
         description=product.description,
         upc=product.upc,
+        size_value=product.size_value,
+        size_unit=product.size_unit,
         ingredients=ingredients,
         analysis=ProductAnalysis(
             active_groups=sorted(analysis.active_groups),

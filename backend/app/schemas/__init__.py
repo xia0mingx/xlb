@@ -139,6 +139,10 @@ class ProductAnalysis(BaseModel):
 class ProductDetail(ProductSummary):
     description: str | None = None
     upc: str | None = None
+    # Exposed so the page can show a unit price: $46.40 for 100ml is only
+    # comparable to $30.00 for 150ml once both are per-millilitre.
+    size_value: float | None = None
+    size_unit: str | None = None
     ingredients: list[IngredientOut] = Field(default_factory=list)
     analysis: ProductAnalysis = Field(default_factory=ProductAnalysis)
     prices: list[RetailerPrice] = Field(default_factory=list)
