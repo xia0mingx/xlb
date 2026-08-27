@@ -107,6 +107,8 @@ export interface ProductAnalysis {
 export interface ProductDetail extends ProductSummary {
   description: string | null
   upc: string | null
+  size_value: number | null
+  size_unit: string | null
   ingredients: Ingredient[]
   analysis: ProductAnalysis
   prices: RetailerPrice[]

@@ -17,17 +17,18 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { Link as RouterLink, useParams } from 'react-router-dom'
 import { api } from '../api/client'
+import { AllergenBanner } from '../components/AllergenBanner'
 import { IngredientList } from '../components/IngredientList'
 import { PriceChart } from '../components/PriceChart'
 import { PriceTable } from '../components/PriceTable'
 import { ProductCard } from '../components/ProductCard'
 import { ProductImage } from '../components/ProductImage'
-import { CATEGORY_LABELS } from '../format'
+import { CATEGORY_LABELS, formatUnitPrice } from '../format'
 import { useCurrency } from '../currency'
 import { useSkinProfile } from '../hooks/useSkinProfile'
 
 export function Product() {
-  const { formatPrice } = useCurrency()
+  const { formatPrice, convert, currency } = useCurrency()
   const { slug = '' } = useParams()
   const { profile } = useSkinProfile()
   const avoid = profile?.avoid_ingredients ?? []
@@ -79,6 +80,21 @@ export function Product() {
       ? product.highest_price - product.best_price
       : 0
 
+  const atItsLowest =
+    product.best_price !== null &&
+    product.lowest_90d !== null &&
+    product.best_price <= product.lowest_90d * 1.02
+
+  // The headline price is not comparable across sizes; this is. It converts
+  // like every other price on the page rather than staying in the source currency.
+  const unitPrice = formatUnitPrice(
+    product.best_price,
+    product.size_value,
+    product.size_unit,
+    convert,
+    currency.symbol,
+  )
+
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
       <Breadcrumbs sx={{ mb: 3 }}>
@@ -95,6 +111,13 @@ export function Product() {
         </Link>
         <Typography color="text.primary">{product.name}</Typography>
       </Breadcrumbs>
+
+      <Box sx={{ mb: 4 }}>
+        <AllergenBanner
+          allergens={product.allergens}
+          totalIngredients={product.ingredients.length}
+        />
+      </Box>
 
       <Grid container spacing={5}>
         <Grid item xs={12} md={7}>
@@ -168,16 +191,40 @@ export function Product() {
               {product.retailer_count === 1 ? '' : 's'}
               {saving > 0.5 ? ` · save ${formatPrice(saving)} vs the dearest` : ''}
             </Typography>
-            {product.lowest_90d !== null && (
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                90-day range {formatPrice(product.lowest_90d)} – {formatPrice(product.highest_90d)}
-                {product.best_price !== null &&
-                product.lowest_90d !== null &&
-                product.best_price <= product.lowest_90d * 1.02
-                  ? ' · at its lowest'
-                  : ''}
-              </Typography>
+            {atItsLowest && (
+              <Chip
+                label="At its lowest"
+                size="small"
+                color="success"
+                variant="outlined"
+                sx={{ mt: 1.5 }}
+              />
             )}
+
+            <Divider sx={{ my: 2 }} />
+
+            <Stack spacing={1}>
+              {product.lowest_90d !== null && (
+                <Stack direction="row" justifyContent="space-between">
+                  <Typography variant="body2" color="text.secondary">
+                    90-day range
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {formatPrice(product.lowest_90d)} – {formatPrice(product.highest_90d)}
+                  </Typography>
+                </Stack>
+              )}
+              {unitPrice && (
+                <Stack direction="row" justifyContent="space-between">
+                  <Typography variant="body2" color="text.secondary">
+                    Unit price
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {unitPrice}
+                  </Typography>
+                </Stack>
+              )}
+            </Stack>
           </Paper>
         </Grid>
       </Grid>

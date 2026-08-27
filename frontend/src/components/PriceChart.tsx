@@ -4,6 +4,7 @@ import {
   Legend,
   Line,
   LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -116,6 +117,21 @@ export function PriceChart({ history, lowest }: Props) {
             }
             wrapperStyle={{ fontSize: 12 }}
           />
+          {lowest !== null && lowest !== undefined && (
+            <ReferenceLine
+              y={lowest}
+              stroke={theme.palette.success.main}
+              strokeDasharray="4 4"
+              strokeOpacity={0.65}
+              label={{
+                value: `90-day low ${formatPrice(lowest)}`,
+                position: 'insideBottomLeft',
+                fill: theme.palette.success.main,
+                fontSize: 11.5,
+                fontWeight: 600,
+              }}
+            />
+          )}
           {history.map((series, index) => (
             <Line
               key={series.retailer_slug}
