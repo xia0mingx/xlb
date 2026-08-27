@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     # SQLite by default so the app runs with no external services.
-    # For Postgres: DATABASE_URL=postgresql+asyncpg://xlb:xlb@localhost:5432/xlb
+    # For Postgres: DATABASE_URL=postgresql+asyncpg://dewdrop:dewdrop@localhost:5432/dewdrop
     database_url: str = "sqlite+aiosqlite:///./xlb.db"
 
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]

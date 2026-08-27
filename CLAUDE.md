@@ -139,7 +139,7 @@ has to account for that.
 the request leaves the process**, plus per-domain throttling and retry. Status
 codes become distinct exception types so callers can tell "blocked" (a signal
 about the retailer) from "broken" (a bug in parsing). The crawler identifies
-honestly as `XLBSkincareBot` rather than spoofing a browser.
+honestly as `DewdropSkincareBot` rather than spoofing a browser.
 
 `registry.py` records retailers **and why excluded ones were excluded** — keep
 that reasoning when touching it. Adding a Shopify retailer is one registry entry;

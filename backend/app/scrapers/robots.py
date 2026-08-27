@@ -17,7 +17,7 @@ import httpx
 logger = logging.getLogger(__name__)
 
 # Identify honestly. If a site wants to exclude us, this is the name to exclude.
-USER_AGENT_TOKEN = "XLBSkincareBot"
+USER_AGENT_TOKEN = "DewdropSkincareBot"
 
 _cache: dict[str, RobotFileParser | None] = {}
 _locks: dict[str, asyncio.Lock] = {}

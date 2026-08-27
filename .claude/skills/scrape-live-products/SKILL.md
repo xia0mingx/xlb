@@ -1,6 +1,6 @@
 ---
 name: scrape-live-products
-description: Scrape live skincare products, prices and images from real retailers into the xlb catalog. Covers running an ingest safely, reading its output, verifying the result, and adding a new retailer with the robots.txt gate. Use when asked to pull in live/real product data, refresh prices, or add a retailer.
+description: Scrape live skincare products, prices and images from real retailers into the Dewdrop catalog. Covers running an ingest safely, reading its output, verifying the result, and adding a new retailer with the robots.txt gate. Use when asked to pull in live/real product data, refresh prices, or add a retailer.
 ---
 
 # Scraping live products into the catalog
@@ -17,7 +17,7 @@ These are not style preferences. Breaking any of them changes what this project 
    `curl` call to fetch product data — use `fetch()`, `fetch_json()`, `fetch_text()`.
    A one-off probe with `curl` to *inspect* a robots.txt or check a status code is
    fine; fetching catalog content to store is not.
-2. **The crawler identifies honestly** as `XLBSkincareBot`. Do not spoof a browser
+2. **The crawler identifies honestly** as `DewdropSkincareBot`. Do not spoof a browser
    User-Agent to get past a block. A site that wants us gone has said so, and
    claiming to respect robots.txt while disguising ourselves is incoherent.
 3. **A retailer that disallows us is not crawled.** Record the exclusion and the
@@ -117,7 +117,7 @@ snapshot from dump time, not live; `generated_at` records when.
 
 ## Adding a retailer
 
-1. **Read its robots.txt first**, as `XLBSkincareBot`, and check the *specific
+1. **Read its robots.txt first**, as `DewdropSkincareBot`, and check the *specific
    paths* you need — not just `Disallow: /`. For a Shopify store those are
    `/products.json`, `/products/{handle}.json` and `/search/suggest.json`.
 2. If any required path is disallowed, **stop**. Add it to `EXCLUDED_RETAILERS`

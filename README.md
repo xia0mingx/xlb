@@ -1,4 +1,4 @@
-# xlb — Skincare Price Comparison & Recommendation
+# Dewdrop — Skincare Price Comparison & Recommendation
 
 A skincare website that does three things:
 
@@ -55,7 +55,7 @@ Postgres instead of SQLite:
 
 ```bash
 docker compose up -d
-export DATABASE_URL=postgresql+asyncpg://xlb:xlb@localhost:5432/xlb
+export DATABASE_URL=postgresql+asyncpg://dewdrop:dewdrop@localhost:5432/dewdrop
 ```
 
 ## How price comparison works
@@ -78,7 +78,7 @@ same value, while `50ml` and `100ml` are held apart.
 ## On scraping and robots.txt
 
 Every request is checked against the target's `robots.txt` before it is sent, and
-the crawler identifies itself honestly as `XLBSkincareBot` rather than spoofing a
+the crawler identifies itself honestly as `DewdropSkincareBot` rather than spoofing a
 browser. Retailers that disallow us are not crawled — see `EXCLUDED_RETAILERS` in
 `backend/app/scrapers/registry.py`, which records who was excluded and why.
 

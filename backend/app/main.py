@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="xlb",
+    title="Dewdrop",
     description="Skincare price comparison, ingredient analysis and recommendations",
     version="0.1.0",
     lifespan=lifespan,

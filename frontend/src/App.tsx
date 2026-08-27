@@ -30,7 +30,7 @@ function Header() {
           >
             <SpaIcon sx={{ color: 'primary.main' }} />
             <Typography variant="h4" component="span" sx={{ letterSpacing: '-0.02em' }}>
-              xlb
+              Dewdrop
             </Typography>
           </Stack>
 
@@ -65,7 +65,7 @@ function Footer() {
     <Box component="footer" sx={{ borderTop: 1, borderColor: 'divider', mt: 8, py: 4 }}>
       <Container maxWidth="lg">
         <Typography variant="caption" color="text.secondary">
-          xlb compares skincare prices and analyses ingredient lists. Ingredient
+          Dewdrop compares skincare prices and analyses ingredient lists. Ingredient
           information is educational and is not medical advice — for a persistent skin
           condition, see a dermatologist. Allergen screening compares your list against
           published ingredient lists only; it cannot account for reformulation,

@@ -1,7 +1,7 @@
 import { useCallback, useSyncExternalStore } from 'react'
 import type { SkinProfile } from '../api/types'
 
-const STORAGE_KEY = 'xlb.skin-profile'
+const STORAGE_KEY = 'dewdrop.skin-profile'
 
 export const emptyProfile: SkinProfile = {
   skin_type: 'normal',

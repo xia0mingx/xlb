@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 # We identify honestly rather than spoofing a browser. Both target retailers serve
 # us fine under this UA, and claiming to respect robots.txt while disguising
 # ourselves as a human would be incoherent. A site that wants us gone can name it.
-BOT_USER_AGENT = f"{USER_AGENT_TOKEN}/0.1 (+https://github.com/xlb/xlb; skincare price comparison)"
+BOT_USER_AGENT = f"{USER_AGENT_TOKEN}/0.1 (+https://github.com/dewdrop/dewdrop; skincare price comparison)"
 
 # Status codes that mean "the retailer refused us", not "something broke".
 BLOCKED_STATUSES = {401, 403, 407, 429, 503}

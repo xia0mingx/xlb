@@ -292,7 +292,7 @@ async def run(reset: bool = False) -> dict[str, int]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Seed the xlb database")
+    parser = argparse.ArgumentParser(description="Seed the Dewdrop database")
     parser.add_argument("--reset", action="store_true", help="delete existing rows first")
     args = parser.parse_args()
 

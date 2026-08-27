@@ -3,8 +3,8 @@ import { api } from '../api/client'
 import { useCurrency } from '../currency'
 import type { ChatMessage } from '../api/types'
 
-const TRANSCRIPT_KEY = 'xlb.chat.transcript'
-const AVOID_KEY = 'xlb.chat.avoid'
+const TRANSCRIPT_KEY = 'dewdrop.chat.transcript'
+const AVOID_KEY = 'dewdrop.chat.avoid'
 
 // Replaying the whole transcript on every turn costs tokens and eventually
 // exceeds the context window, so the client keeps a bounded tail. The backend
